@@ -51,11 +51,35 @@ class LoginViewController: UIViewController {
     return .lightContent
   }
 }
-
+//currious to know why this is in an extension.......
 // MARK: - IBActions
 extension LoginViewController {
 
   @IBAction func loginAction(sender: Any) {
+    
+    guard let username = usernameTextField.text else {
+      print("no username was entered in the textfield")
+      return
+    }
+    guard let password = passwordTextField.text else {
+      print("no password was entered in the textfield")
+      return
+    }
+    if checkLogin(username: username, password: password){
       performSegue(withIdentifier: "dismissLogin", sender: self)
+    }
   }
+  
+  //check the user-provided credentials against the constants previously defined
+  func checkLogin(username: String, password: String) -> Bool {
+    if username == usernameKey && password == passwordKey{
+      return true
+    } else {
+      return false
+    }
+  //  return username == usernameKey && password == passwordKey
+    //I like how this is simple and one clean line of code
+  }
+  
+  
 }
