@@ -67,10 +67,14 @@ extension LoginViewController {
     }
     if checkLogin(username: username, password: password){
       performSegue(withIdentifier: "dismissLogin", sender: self)
+    } else {
+      let alertController = UIAlertController.init(title: "Wait! Something's Wrong!", message: "Security Feature 2.7", preferredStyle: .alert)
+      let alert = UIAlertAction.init(title: "Retry", style: .cancel, handler: nil)
+      alertController.addAction(alert)
+      self.present(alertController, animated: true, completion: nil)
     }
   }
   
-  //check the user-provided credentials against the constants previously defined
   func checkLogin(username: String, password: String) -> Bool {
     if username == usernameKey && password == passwordKey{
       return true
