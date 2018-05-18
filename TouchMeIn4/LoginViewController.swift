@@ -29,10 +29,24 @@
 import UIKit
 import CoreData
 
+//Keychain configuration
+struct KeychainConfiguration {
+  //there variables are called on the type itself and not on specific instances
+  static let serviceName = "TouchMeIn"
+  static let accessGroup: String? = nil
+}
+
 class LoginViewController: UIViewController {
 
   // MARK: Properties
   var managedObjectContext: NSManagedObjectContext?
+  //keychain configuration
+  var passwordItems: [KeychainPasswordItem] = []
+  //above may be an array of enum objects that we'll pass into the keychain
+  let createLoginButtonTag = 0
+  let loginButtonTag = 1
+  //use the below loginButton outlet to update the title of the button depending on its state.
+  @IBOutlet weak var loginButton: UIButton!
   //constant strings used as username and password for this example
   let usernameKey = "Batman"
   let passwordKey = "Hello Bruce!"
@@ -73,6 +87,35 @@ extension LoginViewController {
       alertController.addAction(alert)
       self.present(alertController, animated: true, completion: nil)
     }
+    usernameTextField.resignFirstResponder()
+    passwordTextField.resignFirstResponder()
+    
+    let thisButton = sender as! UIButton
+    if thisButton.tag == createLoginButtonTag {
+      
+      let hasLoginKey = UserDefaults.standard.bool(forKey: "hasLoginKey")
+      if !hasLoginKey && usernameTextField.hasText {
+        UserDefaults.standard.setValue(usernameTextField.text, forKey: "username")
+      }
+      //error handling example
+      do {
+        let passwordItem = KeychainPasswordItem.init(service: KeychainConfiguration.serviceName, account: username, accessGroup: KeychainConfiguration.accessGroup)
+        
+        //save the password for the new item.
+        try passwordItem.savePassword(password)
+      } catch {
+        fatalError("Error updating keychain - \(error)")
+      }
+      UserDefaults.standard.set(true, forKey: "hasLoginKey")
+      loginButton.tag = loginButtonTag
+      performSegue(withIdentifier: "dismissLogin", sender: self)
+    } else if thisButton.tag == loginButtonTag {
+      if checkLogin(username: username, password: password) {
+        performSegue(withIdentifier: "dismissLogin", sender: self)
+      } else {
+        showLoginFailedAlert()
+      }
+    }
   }
   
   func checkLogin(username: String, password: String) -> Bool {
@@ -83,6 +126,14 @@ extension LoginViewController {
     }
   //  return username == usernameKey && password == passwordKey
     //I like how this is simple and one clean line of code
+  }
+  
+  //A private method is only accessible from the declaration and not the instances
+  private func showLoginFailedAlert(){
+    let alertView = UIAlertController.init(title: "Login Problem", message: "Wrong username and password", preferredStyle: .alert)
+    let okAction = UIAlertAction.init(title: "Foiled Again!", style: .default)
+    alertView.addAction(okAction)
+    present(alertView, animated: true)
   }
   
   
